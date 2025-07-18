@@ -3,6 +3,13 @@ export default defineNuxtConfig({
   modules: ['@nuxt/eslint', '@nuxt/ui-pro', '@pinia/nuxt'],
   ssr: false,
   devtools: { enabled: true },
+  // add seo title suffix ssh.studio
+  app: {
+    head: {
+      titleTemplate: '%s | ssh.studio',
+      title: 'ssh.studio',
+    },
+  },
   css: ['~/assets/css/main.css', '~/assets/css/xterm.css'],
   compatibilityDate: '2025-07-15',
   eslint: {

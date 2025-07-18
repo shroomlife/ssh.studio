@@ -24,6 +24,8 @@ const mainStore = useMainStore()
 const isConnected = ref<boolean>(false)
 const isConnecting = ref<boolean>(false)
 
+const { start: startNuxtLoading, finish: finishNuxtLoading } = useLoadingIndicator()
+
 const terminalLog = ref<string[]>([])
 const currentDirectory = ref<string>('/root')
 const currentFiles = ref<FilesEntry[]>([])
@@ -54,7 +56,7 @@ const exportConsoleLog = () => {
 
   const a = document.createElement('a')
   a.href = url
-  a.download = `console-log-${computedCurrentConnection.value.name}.txt`
+  a.download = `console-log-${computedCurrentConnection.value?.name}.txt`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -72,11 +74,11 @@ if (computedCurrentConnection.value === undefined) {
 }
 
 useSeoMeta({
-  title: `${computedCurrentConnection.value.name} - ssh.studio`,
+  title: computedCurrentConnection.value?.name,
 })
 
 const computedPanelTitle = computed(() => {
-  return computedCurrentConnection.value.name
+  return computedCurrentConnection.value?.name
 })
 
 const handleDisconnected = () => {
@@ -114,107 +116,128 @@ const additionalOptions = ref<DropdownMenuItem[][]>([
 
 const connectSSH = async () => {
   isConnecting.value = true
-  const privateKey = localStorage.getItem('SSH_KEY')
+  startNuxtLoading()
 
-  if (!privateKey) {
-    writeAndLog('🔴 No SSH key found in localStorage!')
-    return
-  }
+  try {
+    // await new Promise(resolve => setTimeout(resolve, 2500)) // Simulate delay for UI feedback
+    // const privateKey = localStorage.getItem('SSH_KEY')
 
-  // await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate delay for UI feedback
+    if (!mainStore.getHasSSHKeys) {
+      writeAndLog('🔴 No SSH key found in localStorage!')
+      throw new Error('No SSH key found')
+    }
 
-  ws = new WebSocket('ws://localhost:8080')
-  terminal.clear()
+    // await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate delay for UI feedback
 
-  ws.onopen = () => {
-    isConnected.value = true
-    isConnecting.value = false
-    writeAndLog('✅ WebSocket connected. Starting SSH session...')
+    ws = new WebSocket('ws://localhost:8080')
+    terminal.clear()
 
-    ws?.send(
-      JSON.stringify({
-        channel: 'ssh',
-        type: 'connect',
-        host: computedCurrentConnection.value.address,
-        username: computedCurrentConnection.value.username,
-        port: computedCurrentConnection.value.port,
-        privateKey: privateKey,
-      }),
-    )
-  }
+    ws.onopen = () => {
+      isConnected.value = true
+      isConnecting.value = false
+      writeAndLog('✅ WebSocket connected. Starting SSH session...')
 
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data)
+      ws?.send(
+        JSON.stringify({
+          channel: 'ssh',
+          type: 'connect',
+          host: computedCurrentConnection.value?.address,
+          username: computedCurrentConnection.value?.username,
+          port: computedCurrentConnection.value?.port,
+          privateKey: mainStore.getFirstSSHKey?.privateKey || '',
+        }),
+      )
+    }
 
-    // Handle SSH shell messages
-    if (msg.channel === 'ssh') {
-      if (msg.type === 'status') {
-        writeAndLog(`🟢 Status: ${msg.message}`)
-        if (
-          msg.message.toLowerCase().includes('session closed')
-          || msg.message.toLowerCase().includes('disconnected')
-        ) {
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data)
+
+      // Handle SSH shell messages
+      if (msg.channel === 'ssh') {
+        if (msg.type === 'status') {
+          writeAndLog(`🟢 Status: ${msg.message}`)
+          if (
+            msg.message.toLowerCase().includes('session closed')
+            || msg.message.toLowerCase().includes('disconnected')
+          ) {
+            handleDisconnected()
+          }
+        }
+        else if (msg.type === 'error') {
+          writeAndLog(`🔴 Error: ${msg.message}`)
           handleDisconnected()
         }
+        else if (msg.type === 'disconnect') {
+          writeAndLog(`🔌 Disconnected: ${msg.message}`)
+          handleDisconnected()
+        }
+        else if (msg.type === 'data') {
+          writeDataAndLog(msg.data)
+        }
       }
-      else if (msg.type === 'error') {
-        writeAndLog(`🔴 Error: ${msg.message}`)
-        handleDisconnected()
-      }
-      else if (msg.type === 'disconnect') {
-        writeAndLog(`🔌 Disconnected: ${msg.message}`)
-        handleDisconnected()
-      }
-      else if (msg.type === 'data') {
-        writeDataAndLog(msg.data)
+
+      // Handle SFTP messages
+      if (msg.channel === 'sftp') {
+        if (msg.type === 'directory-listing') {
+          currentFiles.value = msg.entries
+        }
+        else if (msg.type === 'file-content') {
+          const decoded = atob(msg.content)
+          const blob = new Blob([decoded])
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = msg.path.split('/').pop() || 'download.txt'
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+        }
+        else if (msg.type === 'upload-success') {
+          toast.add({
+            title: 'Upload Successful',
+            icon: 'mdi:check-circle',
+            description: `File ${msg.filename} uploaded successfully.`,
+            color: 'success',
+          })
+          listDirectory(currentDirectory.value)
+        }
+        else if (msg.type === 'error') {
+          console.error('SFTP error:', msg.message)
+          toast.add({
+            icon: 'mdi:alert-circle',
+            title: 'SFTP Error',
+            description: msg.message,
+            color: 'error',
+          })
+        }
       }
     }
 
-    // Handle SFTP messages
-    if (msg.channel === 'sftp') {
-      if (msg.type === 'directory-listing') {
-        currentFiles.value = msg.entries
-      }
-      else if (msg.type === 'file-content') {
-        const decoded = atob(msg.content)
-        const blob = new Blob([decoded])
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = msg.path.split('/').pop() || 'download.txt'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-      }
-      else if (msg.type === 'upload-success') {
-        toast.add({
-          title: 'Upload Successful',
-          description: `File ${msg.filename} uploaded successfully.`,
-          color: 'success',
-        })
-        listDirectory(currentDirectory.value)
-      }
-      else if (msg.type === 'error') {
-        console.error('SFTP error:', msg.message)
-        toast.add({
-          title: 'SFTP Error',
-          description: msg.message,
-          color: 'error',
-        })
-      }
+    ws.onerror = (error) => {
+      writeAndLog('🔴 WebSocket error occurred.')
+      console.error('WebSocket Error', error)
+      handleDisconnected()
+    }
+
+    ws.onclose = () => {
+      writeAndLog('🔌 Connection closed.')
+      handleDisconnected()
     }
   }
-
-  ws.onerror = (error) => {
-    writeAndLog('🔴 WebSocket error occurred.')
-    console.error('WebSocket Error', error)
-    handleDisconnected()
+  catch (error) {
+    writeAndLog(`🔴 Error connecting to SSH`)
+    console.error('Connection Error:', error)
+    toast.add({
+      title: 'Connection Error',
+      description: 'Es konnte leider keine Verbindung zum SSH-Server hergestellt werden.',
+      icon: 'mdi:alert-circle',
+      color: 'error',
+    })
   }
-
-  ws.onclose = () => {
-    writeAndLog('🔌 Connection closed.')
-    handleDisconnected()
+  finally {
+    isConnecting.value = false
+    finishNuxtLoading()
   }
 }
 
@@ -272,23 +295,33 @@ const navigationItems: ComputedRef<NavigationMenuItem[][]> = computed(() => [
         currentNavigationItem.value = 'Files'
       },
     },
+  ], [
+    {
+      label: 'Bearbeiten',
+      icon: 'mdi:pencil',
+      disabled: isConnected.value,
+      to: `/${computedCurrentConnection.value?.uuid}/edit`,
+    },
+    {
+      label: 'Löschen',
+      icon: 'mdi:delete',
+      disabled: isConnected.value,
+      onSelect: () => {
+        const confirmDelete = confirm(`Bist du sicher, dass du die Verbindung "${computedCurrentConnection.value?.name}" löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.`)
+        if (confirmDelete) {
+          toast.add({
+            title: 'Verbindung gelöscht',
+            description: `Die Verbindung "${computedCurrentConnection.value?.name}" wurde erfolgreich gelöscht.`,
+            icon: 'mdi:check-circle',
+            color: 'success',
+          })
+          mainStore.removeConnectionByUUID(computedCurrentConnection.value?.uuid)
+          navigateTo('/')
+        }
+      },
+    },
   ],
 ])
-
-// const computedFilesBreadcrumb = computed(() => {
-//   if (currentNavigationItem.value !== 'Files') return []
-//   return currentDirectory.value.split('/').map((part, index, arr) => {
-//     const path = '/' + arr.slice(0, index + 1).join('/')
-//     return {
-//       label: part || '/',
-//       active: index === arr.length - 1,
-//       onClick: () => {
-//         currentDirectory.value = path
-//         listDirectory(path)
-//       },
-//     }
-//   })
-// })
 
 const listDirectory = (path: string) => {
   if (ws && ws.readyState === WebSocket.OPEN) {
@@ -416,15 +449,6 @@ watch(() => currentNavigationItem.value, (newItem) => {
           </div>
         </template>
         <template #right>
-          <UButton
-            v-if="!isConnected&&!isConnecting"
-            variant="solid"
-            size="lg"
-            @click="connectSSH"
-          >
-            Connect
-          </UButton>
-
           <UDropdownMenu
             v-if="isConnected"
             :items="additionalOptions"
@@ -451,11 +475,29 @@ watch(() => currentNavigationItem.value, (newItem) => {
     </template>
 
     <template #body>
+      <MissingKeyAlert />
       <div
         v-show="currentNavigationItem === 'Konsole'"
         class="flex flex-col grow"
       >
-        <div class="flex-1 flex items-center justify-center">
+        <div class="flex-1 flex items-center justify-center relative">
+          <!-- gray overlay -->
+          <div
+            v-if="!isConnected"
+            class="absolute inset-0 bg-gray-200 opacity-50 z-10"
+          />
+          <UButton
+            v-if="!isConnected"
+            variant="solid"
+            size="xl"
+            icon="mdi:connection"
+            class="left-1/2 absolute -translate-x-1/2 z-20"
+            :loading="isConnecting"
+            :disabled="!mainStore.getHasSSHKeys"
+            @click="connectSSH"
+          >
+            Verbinden
+          </UButton>
           <div
             ref="termContainer"
             class="w-full h-full"

@@ -5,20 +5,27 @@ import { useMainStore } from '~/stores/main'
 const mainStore = useMainStore()
 mainStore.pullConnections()
 
-const items: NavigationMenuItem[] = [
-  {
-    label: 'Dashboard',
-    icon: 'mdi:home-automation',
-    to: '/',
-  },
-  ...mainStore.getCurrentConnections.map((connection) => {
-    return {
-      label: connection.name,
-      icon: 'mdi:server',
-      to: `/${connection.uuid}`,
-    }
-  }),
-]
+const computedNavItems: ComputedRef<NavigationMenuItem[][]> = computed(() => {
+  return [
+    [
+      {
+        label: 'Dashboard',
+        icon: 'mdi:home-automation',
+        to: '/',
+      },
+    ],
+    mainStore.getCurrentConnections
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((connection) => {
+        return {
+          label: connection.name,
+          icon: 'mdi:server',
+          to: `/${connection.uuid}`,
+        }
+      }),
+  ]
+})
 </script>
 
 <template>
@@ -34,9 +41,21 @@ const items: NavigationMenuItem[] = [
       </template>
 
       <UNavigationMenu
-        :items="items"
+        :items="computedNavItems"
         orientation="vertical"
       />
+
+      <template #footer>
+        <UNavigationMenu
+          class="w-full"
+          :items="[{
+            to: '/keys',
+            icon: 'mdi:gear',
+            label: 'Meine SSH Keys',
+          }]"
+          orientation="vertical"
+        />
+      </template>
     </UDashboardSidebar>
     <slot />
   </UDashboardGroup>

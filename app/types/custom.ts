@@ -4,9 +4,10 @@ export interface Connection {
   address: string
   port: number
   username: string
+  sshKeyUuid?: string
 }
 
 export interface SSH_Key {
   uuid: string
-  encryptedKey: string
+  privateKey: string
 }

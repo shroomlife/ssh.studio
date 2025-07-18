@@ -1,3 +1,10 @@
+<script lang="ts" setup>
+const mainStore = useMainStore()
+onBeforeMount(() => {
+  mainStore.init()
+})
+</script>
+
 <template>
   <UApp>
     <NuxtLoadingIndicator />
