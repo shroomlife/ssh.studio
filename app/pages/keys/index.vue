@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+const mainStore = useMainStore()
+
 useSeoMeta({
-  title: 'Meine SSH Schlüssel',
-  description: 'Verwalte deine SSH Schlüssel für eine sichere Verbindung.',
+  title: 'Meine SSH Keys',
+  description: 'Verwalte deine SSH Keys für eine sichere Verbindung.',
 })
 
 const navItems = computed(() => {
@@ -12,6 +14,15 @@ const navItems = computed(() => {
       to: '/keys/new',
     },
   ]
+})
+
+const computedSSHKeys = computed(() => {
+  return mainStore.getSSHKeys
+    .map((sshKey) => {
+      return {
+        title: sshKey.uuid,
+      }
+    })
 })
 </script>
 
@@ -29,7 +40,21 @@ const navItems = computed(() => {
     </template>
 
     <template #body>
-      <div class="flex justify-center" />
+      <MissingKeyAlert />
+      <UPageHeader title="Meine SSH Keys" />
+
+      <template v-if="mainStore.getHasSSHKeys">
+        <UPageList>
+          <UPageCard
+            v-for="(card, index) in computedSSHKeys"
+            :key="index"
+            v-bind="card"
+          />
+        </UPageList>
+      </template>
+      <template v-else>
+        <p>Bisher sind noch keine SSH Keys vorhanden.</p>
+      </template>
     </template>
   </UDashboardPanel>
 </template>

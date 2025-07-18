@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 useSeoMeta({
-  title: 'Neuer SSH Schlüssel',
-  description: 'Erstelle einen neuen SSH Schlüssel für eine sichere Verbindung.',
+  title: 'Neuer SSH Keys',
+  description: 'Erstelle einen neuen SSH Keys für eine sichere Verbindung.',
 })
 </script>
 

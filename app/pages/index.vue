@@ -46,7 +46,7 @@ const navItems = computed(() => {
 
     <template #body>
       <MissingKeyAlert />
-      <UPageHeader title="Deine Verbindungen" />
+      <UPageHeader title="Meine Verbindungen" />
       <template v-if="computedConnectionCards.length > 0">
         <UPageGrid>
           <UPageCard

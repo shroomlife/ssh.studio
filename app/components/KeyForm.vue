@@ -53,8 +53,8 @@ const handleSubmit = () => {
       color: 'success',
     })
   }
-
   formState.privateKey = undefined
+  navigateTo('/keys')
 }
 </script>
 
@@ -68,13 +68,13 @@ const handleSubmit = () => {
       <div class="flex flex-col gap-4 w-full">
         <UFormField
           size="xl"
-          label="SSH Schlüssel"
+          label="SSH Keys"
           name="name"
           :required="true"
         >
           <UTextarea
             v-model="formState.privateKey"
-            placeholder="Dein SSH Schlüssel"
+            placeholder="Dein SSH Keys"
             class="w-full"
           />
         </UFormField>

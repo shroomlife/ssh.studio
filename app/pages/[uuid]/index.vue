@@ -119,15 +119,10 @@ const connectSSH = async () => {
   startNuxtLoading()
 
   try {
-    // await new Promise(resolve => setTimeout(resolve, 2500)) // Simulate delay for UI feedback
-    // const privateKey = localStorage.getItem('SSH_KEY')
-
     if (!mainStore.getHasSSHKeys) {
       writeAndLog('🔴 No SSH key found in localStorage!')
       throw new Error('No SSH key found')
     }
-
-    // await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate delay for UI feedback
 
     ws = new WebSocket('ws://localhost:8080')
     terminal.clear()
@@ -180,6 +175,7 @@ const connectSSH = async () => {
       if (msg.channel === 'sftp') {
         if (msg.type === 'directory-listing') {
           currentFiles.value = msg.entries
+          finishNuxtLoading()
         }
         else if (msg.type === 'file-content') {
           const decoded = atob(msg.content)
@@ -325,6 +321,7 @@ const navigationItems: ComputedRef<NavigationMenuItem[][]> = computed(() => [
 
 const listDirectory = (path: string) => {
   if (ws && ws.readyState === WebSocket.OPEN) {
+    startNuxtLoading()
     ws.send(JSON.stringify({
       channel: 'sftp',
       type: 'list-directory',

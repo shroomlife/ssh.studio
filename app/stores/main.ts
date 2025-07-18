@@ -5,13 +5,13 @@ export const useMainStore = defineStore('Main', {
   state: () => ({
     sshKeys: [] as SSH_Key[],
     currentConnections: [] as Connection[],
-    settings: {
-      keys: [] as SSH_Key[],
-    },
   }),
   getters: {
     getHasSSHKeys: (state) => {
       return state.sshKeys.length > 0
+    },
+    getSSHKeys: (state) => {
+      return state.sshKeys
     },
     getFirstSSHKey: (state) => {
       return state.sshKeys.length > 0 ? state.sshKeys[0] : null
