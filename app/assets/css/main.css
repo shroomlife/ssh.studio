@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@nuxt/ui-pro";
+
+@theme {
+  --font-display: "Fira Code", "sans-serif";
+}
+
+.xterm-screen {
+  width: 100%;
+}
