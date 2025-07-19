@@ -1,75 +1,49 @@
-# Nuxt Minimal Starter
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+# SSH Studio
 
-## Setup
+SSH Studio is a modern web app for managing SSH keys, SSH connections, and browsing/transferring files via SFTP—all from an intuitive interface. Built with Nuxt 4 and Bun for fast, efficient development.
 
-Make sure to install dependencies:
+## Features
+
+- Manage SSH keys and connections
+- Browse and transfer files via SFTP
+- Simple, intuitive UI
+
+---
+
+
+## Setup (Bun)
+
+Install dependencies with Bun:
 
 ```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
 bun install
 ```
 
-## Development Server
 
-Start the development server on `http://localhost:3000`:
+## Development
+
+Start the development server:
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
 bun run dev
 ```
 
+Visit `http://localhost:3000` in your browser.
+
+
 ## Production
 
-Build the application for production:
+Build for production:
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
 bun run build
 ```
 
-Locally preview production build:
+Preview production build locally:
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
 bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+For deployment, see the [Nuxt documentation](https://nuxt.com/docs/getting-started/deployment).
