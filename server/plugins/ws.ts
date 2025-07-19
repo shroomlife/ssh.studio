@@ -59,6 +59,9 @@ export default defineNitroPlugin(() => {
               port: data.port || 22,
               username: data.username,
               privateKey: data.privateKey,
+              keepaliveInterval: 10000,
+              keepaliveCountMax: 3,
+              timeout: 5000,
             })
           }
 

@@ -389,8 +389,10 @@ const computedBreadCrumbItems = computed(() => {
         label: part,
         active: index === arr.length - 1,
         onClick: () => {
-          currentDirectory.value = path
-          listDirectory(path)
+          if (path !== currentDirectory.value) {
+            currentDirectory.value = path
+            listDirectory(path)
+          }
         },
       }
     }),
