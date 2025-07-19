@@ -12,6 +12,9 @@ export default defineNuxtConfig({
   },
   css: ['~/assets/css/main.css', '~/assets/css/xterm.css'],
   compatibilityDate: '2025-07-15',
+  nitro: {
+    preset: 'bun',
+  },
   eslint: {
     config: {
       stylistic: true,

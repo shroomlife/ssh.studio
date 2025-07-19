@@ -5,6 +5,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "docker:build": "docker build -t ssh.studio:latest .",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",
     "preview": "nuxt preview"
