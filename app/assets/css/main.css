@@ -1,8 +1,21 @@
 @import "tailwindcss";
 @import "@nuxt/ui-pro";
 
-@theme {
+@theme static {
   --font-display: "Fira Code", "sans-serif";
+
+  --color-green-50: #fcf5fe;
+  --color-green-100: #f6eafd;
+  --color-green-200: #eed3fb;
+  --color-green-300: #e2b0f7;
+  --color-green-400: #d382f0;
+  --color-green-500: #b640e1;
+  --color-green-600: #a332c7;
+  --color-green-700: #8926a5;
+  --color-green-800: #712187;
+  --color-green-900: #60206f;
+  --color-green-950: #3d0949;
+
 }
 
 .xterm-screen {

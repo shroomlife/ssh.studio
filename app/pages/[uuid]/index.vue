@@ -85,6 +85,7 @@ const handleDisconnected = () => {
   isConnected.value = false
   isConnecting.value = false
   ws = null
+  currentNavigationItem.value = 'Konsole'
   writeAndLog('🔌 Disconnected from SSH session.')
 }
 
@@ -124,6 +125,12 @@ const connectSSH = async () => {
       throw new Error('No SSH key found')
     }
 
+    const foundSSHKey = mainStore.getSSHKeys.find(key => key.uuid === computedCurrentConnection.value?.sshKeyUuid)
+    if (!foundSSHKey) {
+      writeAndLog('🔴 SSH key not found for this connection!')
+      throw new Error('SSH key not found')
+    }
+
     ws = new WebSocket('ws://localhost:8080')
     terminal.clear()
 
@@ -139,7 +146,7 @@ const connectSSH = async () => {
           host: computedCurrentConnection.value?.address,
           username: computedCurrentConnection.value?.username,
           port: computedCurrentConnection.value?.port,
-          privateKey: mainStore.getFirstSSHKey?.privateKey || '',
+          privateKey: foundSSHKey.privateKey,
         }),
       )
     }

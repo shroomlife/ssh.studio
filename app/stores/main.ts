@@ -71,13 +71,14 @@ export const useMainStore = defineStore('Main', {
         this.currentConnections = JSON.parse(connections)
       }
     },
-    createConnection(name: string, address: string, port: number, username: string) {
+    createConnection(name: string, address: string, port: number, username: string, sshKeyUuid: string) {
       const newConnection: Connection = {
         uuid: crypto.randomUUID(),
         name,
         address,
         port,
         username,
+        sshKeyUuid,
       }
       this.addConnection(newConnection)
       this.pushConnections()

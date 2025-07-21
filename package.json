@@ -1,6 +1,6 @@
 {
   "name": "nuxt-app",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,7 +18,7 @@
     "@xterm/addon-fit": "0.10.0",
     "@xterm/xterm": "5.5.0",
     "eslint": "9.31.0",
-    "nuxt": "4.0.0",
+    "nuxt": "4.0.1",
     "pinia": "3.0.3",
     "ssh2": "1.16.0",
     "typescript": "5.8.3",

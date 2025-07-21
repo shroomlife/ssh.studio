@@ -16,6 +16,7 @@ const initialState = reactive({
   address: foundConnection.address,
   port: foundConnection.port,
   username: foundConnection.username,
+  sshKeyUuid: foundConnection.sshKeyUuid,
 })
 </script>
 

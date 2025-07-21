@@ -15,15 +15,20 @@ const { uuid, initialState } = defineProps({
   },
 })
 
+const computedSSHKeyOptions = computed(() => {
+  return mainStore.getSSHKeys.map(key => key.uuid)
+})
+
 const formState = reactive({
   name: initialState?.name as string | undefined,
   address: initialState?.address as string | undefined,
   port: initialState?.port as number | undefined,
   username: initialState?.username as string | undefined,
+  sshKeyUuid: initialState?.sshKeyUuid as string | undefined,
 })
 
 const handleSubmit = () => {
-  if (!formState.name || !formState.address || !formState.username) {
+  if (!formState.name || !formState.address || !formState.username || !formState.sshKeyUuid) {
     toast.add({
       title: 'Fehler',
       description: 'Bitte fülle alle erforderlichen Felder aus.',
@@ -40,6 +45,7 @@ const handleSubmit = () => {
         address: formState.address,
         port: formState.port || 22,
         username: formState.username,
+        sshKeyUuid: formState.sshKeyUuid,
       },
     )
     toast.add({
@@ -55,6 +61,7 @@ const handleSubmit = () => {
       formState.address,
       formState.port || 22,
       formState.username,
+      formState.sshKeyUuid,
     )
     toast.add({
       title: 'Verbindung Erstellt',
@@ -67,6 +74,7 @@ const handleSubmit = () => {
   formState.address = undefined
   formState.port = undefined
   formState.username = undefined
+  formState.sshKeyUuid = ''
 }
 </script>
 
@@ -127,6 +135,20 @@ const handleSubmit = () => {
             v-model="formState.username"
             placeholder="Benutzername für die Verbindung"
             class="w-full"
+          />
+        </UFormField>
+
+        <UFormField
+          size="xl"
+          label="SSH Key"
+          name="sshKeyUuid"
+          :required="true"
+        >
+          <USelectMenu
+            v-model="formState.sshKeyUuid"
+            :items="computedSSHKeyOptions"
+            class="w-full"
+            :search-input="false"
           />
         </UFormField>
       </div>
